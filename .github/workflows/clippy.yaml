@@ -11,7 +11,10 @@ on:
 jobs:
   clippy:
     runs-on: ubuntu-latest
-    name: "[stable] Clippy"
+    strategy:
+      matrix:
+        rust: ["stable", "nightly"]
+    name: "Clippy"
     steps:
       - run: sudo apt install -y --no-install-recommends libasound2-dev pkg-config
 
@@ -19,7 +22,7 @@ jobs:
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: stable
+          toolchain: ${{matrix.rust}}
           components: clippy
 
       - run: cargo clippy --lib --all-features
