@@ -1,0 +1,26 @@
+name: "Clippy"
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  clippy:
+    runs-on: ubuntu-latest
+    name: "[stable] Clippy"
+    steps:
+      - run: sudo apt install -y --no-install-recommends libasound2-dev pkg-config
+
+      - uses: actions/checkout@v3
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy
+
+      - run: cargo clippy --lib --all-features
+
