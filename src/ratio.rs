@@ -1,6 +1,13 @@
 use crate::math::{greatest_prime_factor, normalize_pair, reduce, two};
+use crate::play::{Play, PlaybackMode};
 use num::{cast, one, PrimInt};
 use std::ops::{Div, Mul, Neg};
+use std::time::Duration;
+
+use rodio::{
+    source::{SineWave, Source},
+    OutputStream, Sink,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Ratio<T: PrimInt> {
@@ -33,6 +40,38 @@ impl<T: PrimInt> Ratio<T> {
 
     pub fn limit(&self) -> T {
         greatest_prime_factor(self.numer).max(greatest_prime_factor(self.denom))
+    }
+}
+
+impl<T: PrimInt> Play for Ratio<T> {
+    fn play(&self, mode: PlaybackMode) {
+        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let r: f32 = self.into();
+
+        let root = SineWave::new(220.)
+            .take_duration(Duration::from_secs_f32(1.))
+            .amplify(0.2);
+
+        let above = SineWave::new(220. * r)
+            .take_duration(Duration::from_secs_f32(1.))
+            .amplify(0.2);
+
+        match mode {
+            PlaybackMode::Chord => {
+                let sink1 = Sink::try_new(&stream_handle).unwrap();
+                let sink2 = Sink::try_new(&stream_handle).unwrap();
+                sink1.append(root);
+                sink2.append(above);
+                sink1.sleep_until_end();
+                sink2.sleep_until_end();
+            }
+            PlaybackMode::Interval => {
+                let sink = Sink::try_new(&stream_handle).unwrap();
+                sink.append(root);
+                sink.append(above);
+                sink.sleep_until_end();
+            }
+        }
     }
 }
 
